@@ -1,0 +1,175 @@
+\documentclass[11pt]{article}
+%---------------------------------
+% Set page dimensions
+%---------------------------------
+\usepackage[margin=1in]{geometry}
+% \setlength{\parindent}{0em}
+\setlength{\parskip}{0em}
+%=================================
+
+% \usepackage[T1]{fontenc}
+% \usepackage[utf8]{inputenc}
+% \usepackage{times}
+% \usepackage{helvet}
+
+%---------------------------------
+% Font options
+%---------------------------------
+\usepackage{fontspec}
+\setmainfont{Arial}
+
+\usepackage[style=science, doi=true, backend=biber]{biblatex}
+\setlength{\bibitemsep}{1pt}
+% \renewcommand\bibfont{\normalfont\scriptsize}
+\addbibresource{ref.bib}
+
+\usepackage{graphicx}
+\usepackage{float}
+\PassOptionsToPackage{hyphens}{url}\usepackage[colorlinks=false]{hyperref}
+\usepackage{bookmark}
+\usepackage[all]{hypcap}
+\usepackage[version=4]{mhchem}
+\usepackage[capitalise]{cleveref}
+
+\usepackage{wrapfig}
+\setlength{\intextsep}{4.0pt plus 2.0pt minus 2.0pt}%
+\setlength{\columnsep}{8pt}%
+
+\usepackage{sidecap}
+\usepackage{subcaption}
+\usepackage[labelfont={bf,footnotesize}, textfont=footnotesize, skip=8pt plus 2pt minus 2pt]{caption}
+
+\usepackage{mathtools} % should load amsmath
+% \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{xspace}
+\usepackage{changepage}
+
+
+\usepackage{lineno}
+\linenumbers
+
+\usepackage{array}
+\usepackage{booktabs}  % Nice tables!
+\usepackage{multicol}
+\usepackage{multirow}
+\renewcommand{\arraystretch}{1.2}
+
+\usepackage{siunitx}
+\DeclareSIUnit{\molecule}{molecule}
+\DeclareSIUnit{\molecules}{molecule}
+\DeclareSIUnit\molar{\mole\per\cubic\deci\metre}
+\DeclareSIUnit\Molar{\textsc{M}}
+\sisetup{
+    separate-uncertainty=true,
+    detect-all, 
+    range-phrase = --,
+    list-units = single,
+    range-units = single,
+	group-digits = integer,
+}
+
+\usepackage[shortlabels]{enumitem}
+\setlist{nosep} 
+
+\usepackage[dvipsnames, table]{xcolor}
+
+\usepackage[color=green!20]{todonotes}
+\newcommand{\Red}[1]{{\color{red}#1}}
+\newcommand{\Blue}[1]{{\color{blue}#1}}
+\newcommand{\ctl}[1]{{\color{RubineRed}CTL: #1}}
+
+\newcommand{\needref}[0]{\textcolor{red}{[REFS]}}
+\newcommand{\thinsim}{{\raise.17ex\hbox{\(\scriptstyle\mathtt{\sim}\)}}}
+
+%%%%%%%%%%%%%%%%%% ACRONYM SUPPORT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Learn more here: https://www.overleaf.com/learn/latex/glossaries
+\usepackage[acronym, nonumberlist, nopostdot, nogroupskip, numberedsection=false]{glossaries}
+% \setlength{\glsdescwidth}{0.8\textwidth}
+
+\setacronymstyle{long-short}
+\makeglossaries{}
+\newacronym{md}{MD}{Molecular Dynamics}
+
+
+\newcommand{\ep}{\epsilon}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\ee}{\mathrm{e}}
+
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\defn}{\stackrel{\text{def}}{=}}
+
+\DeclareSIUnit[]{\osm}{Osm}
+
+\begin{document}
+\begin{centering}
+    \textbf{\Large Notes on axon pearling}\\[3mm]
+    \textbf{Christopher T. Lee, Padmini Rangamani}\\[1mm]
+\end{centering}
+
+\section{Equilibrium tube radius}
+Following the approach outlined by Refs.~\cite{DerenyiEtAl2002,ShurerEtAl2019}.
+The general form of the energy of a membrane with an external force \(f\) acting over length \(L\) is,
+\begin{equation}
+    F = \int_A \left[\kappa(H - c_0)^2 \sigma \right]dA - pV - fL.
+\end{equation}
+Where \(H\) is the mean curvature give by \((c_1 + c_2)/2\)
+In the special case of a cylinder which has \(c_1 = 1/R\) and \(c_2 = 0\), assuming that \(p=0\), and \(f\neq 0\),
+\begin{equation}
+    F = \left[ \kappa\left(\frac{1}{2R} - c_0\right)^2 + \sigma\right] 2\pi RL - fL.
+\end{equation}
+
+At equilibrium the energies are minimized with respect to the radius and length of the tube such that
+\begin{equation}
+    \frac{\partial F}{\partial R} = 0,\quad \frac{F}{\partial L} =0.
+\end{equation}
+Considering first the minimization with respect to the radius,
+\begin{align*}
+    0 = \frac{\partial F}{\partial R} & = 2\pi L\left[\frac{-\kappa}{4R^2} + \kappa c_0^2 + \sigma\right] \\
+                                      & = - \frac{\kappa}{4R^2} + \kappa c_0^2 + \sigma
+\end{align*}
+Thus,
+\begin{equation}
+    \boxed{R = \frac{1}{2\sqrt{c_0^2 + \sigma/\kappa}}}
+\end{equation}
+
+Rearranging,
+\begin{equation}
+    c_0 = \sqrt{1/4R^2 - \sigma/\kappa}.
+\end{equation}
+
+For \(R = \SI{0.05}{\micro\meter}\) the limit of \(\sigma/\kappa\) is \(\approx \SI{100}{\per\micro\meter\squared}\).
+
+\section{Osmotic pressure relationship}
+
+The osmolarity of the solution, \(O\), is given by
+\begin{equation}
+    O = \sum_i \varphi_i n_i C_i,
+\end{equation}
+where \(\varphi\) is the osmotic (activity) coefficient, \(n\) is the number of dissociated ions, and \(C\) is the concentration.
+
+The osmotic pressure is given by
+\begin{equation}
+    P = RTO  = RT \sum_i  \varphi_i n_i C_i
+\end{equation}
+
+We assume that the interior of the cell is at the conventional \SI{300}{\milli\osm}.
+
+The osmotic pressure energy
+\begin{equation}
+    E_p = \int_{\bar{V}}^{V} \Delta P(\tilde{V}; \vec{r})d \tilde{V} = \int_{\bar{V}}^{V} iRT \left(\frac{n}{V} - \bar{c}\right) dV = iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1]
+\end{equation}
+
+At nearly isoosmotic conditions, 
+\begin{equation}
+    \lim_{V\to\bar{V}} iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1] \approx \frac{1}{2}K_v \frac{(V - \bar{V})^2}{\bar{V}} + \mathcal{O}(V^3).
+\end{equation}
+We define a constant \(K_v = iRTn\) accounting for the constant parameters.
+
+
+\printbibliography
+\end{document}
