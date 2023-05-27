@@ -6,4 +6,4 @@ from pathlib import Path
 # t = 4e-2* unit.erg/unit.cm**2
 # print(t.to(unit.nanonewton/unit.micrometer))
 
-driver.run_simulation((0.2, 0.01, 60, Path(".")))
+driver.run_simulation((0.1, 0.001, 20, 2.5, 500, Path(".")))

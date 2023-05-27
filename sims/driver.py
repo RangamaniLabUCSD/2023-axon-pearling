@@ -1,14 +1,14 @@
 import pymem3dg as dg
 import pymem3dg.util as dgu
 
-# import pymem3dg.boilerplate as dgb
-
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 from typing import Tuple
 from functools import partial
+
+import warnings
 
 from units import unit
 
@@ -20,8 +20,9 @@ import sys
 import pdb
 
 
-from parameter_variation import osmolarities, tensions, bending_moduli
+from parameter_variation import osmolarities, tensions, bending_moduli, target_volume_scale, reservoir_volume
 
+warnings.filterwarnings("error")
 
 def constantSurfaceTensionModel(area: float, tension: float) -> Tuple[float, float]:
     """Constant surface tension model
@@ -83,6 +84,8 @@ def getGeometryParameters(
     radial_subdivisions: int = 16,
     axial_subdivisions: int = 120,
     T: float = 310,
+    reservoir_volume: float = 500,
+    target_volume_scale: float = 3,
 ) -> Tuple[dg.Parameters, dg.Geometry, float]:
     """Initialize geometry and parameters for mem3dg simulation of axon pearling
 
@@ -188,8 +191,8 @@ def getGeometryParameters(
 
     # Reservoir volume?
     # https://www.nature.com/articles/s42003-021-02548-6
-    reservoir_volume = 200 * unit.micron**3
-    target_volume = 3 * initial_volume
+    reservoir_volume = reservoir_volume * unit.micron**3
+    target_volume = target_volume_scale * initial_volume
 
     initial_solute = (cell_osmolarity * target_volume).to_base_units()
 
@@ -270,15 +273,21 @@ def initialize_mesh_processor_settings(system: dg.System, R_bar: float):
 
 
 def run_simulation(args):
-    osmolarity, tension, kb_scale, output_dir = args
+    osmolarity, tension, kb_scale, target_volume_scale, reservoir_volume, output_dir = args
     R_bar = 0.05
-    print(output_dir)
+    print(f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}")
 
     with open(output_dir / "log.txt", "w") as fd:
         with contextlib.redirect_stdout(fd):
-            parameters, geometry, h = getGeometryParameters(
-                R_bar=R_bar, osmolarity=osmolarity, tension=tension, kb_scale=kb_scale
-            )
+            try:
+                parameters, geometry, h = getGeometryParameters(
+                    R_bar=R_bar, osmolarity=osmolarity, tension=tension, kb_scale=kb_scale, 
+                    target_volume_scale=target_volume_scale,
+                    reservoir_volume=reservoir_volume 
+                )
+            except Exception as e:
+                print(e)
+                return
 
             _shape = np.shape(geometry.getVertexMatrix())
 
@@ -334,6 +343,7 @@ def run_simulation(args):
             fe.saveData(
                 ifOutputTrajFile=False, ifOutputMeshFile=True, ifPrintToConsole=False
             )
+    print(f"Ending: {output_dir}")
 
 
 if __name__ == "__main__":
@@ -353,8 +363,10 @@ if __name__ == "__main__":
                         osmolarity,
                         tension,
                         kappa,
+                        target_volume_scale,
+                        reservoir_volume,
                         output_dir,
                     )
                 )
 
-    r = process_map(run_simulation, args, max_workers=4)
+    r = process_map(run_simulation, args, max_workers=20)
