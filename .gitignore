@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-**/trajectories
+**/trajectories*
 **/*-build
 .polyscope.ini
 profile.prof

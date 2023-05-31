@@ -201,6 +201,7 @@ def getGeometryParameters(
         f"\tInitial solute: {initial_solute.to(unit.attomole)}",
         f"\tConcentration: {(initial_solute / initial_volume).to(unit.molar)}",
         f"\tScaled Kv strength (iRTn): {(RT*initial_solute/reservoir_volume.magnitude).to(unit.micron*unit.nanonewton)}",
+        f"\tTarget osmolarity: {osmolarity}",
         sep="\n",
     )
 
@@ -212,7 +213,7 @@ def getGeometryParameters(
         reservoir_volume=reservoir_volume,
     )
 
-    delta_p = RT * (cell_osmolarity - osmolarity)
+    # delta_p = RT * (cell_osmolarity - osmolarity)
     # print(
     #     f"Delta osmotic pressure:  {delta_p.to(unit.nanonewton /unit.micron**2)}",
     #     f"Initial (pressure, energy): {p.osmotic.form(initial_volume.magnitude)}",
@@ -277,6 +278,12 @@ def run_simulation(args):
     R_bar = 0.05
     print(f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}")
 
+
+    trajfile = output_dir / "tra.nc"
+    if trajfile.exists():
+        print("Ending {output_dir} trajfile exists")
+        return
+
     with open(output_dir / "log.txt", "w") as fd:
         with contextlib.redirect_stdout(fd):
             try:
@@ -287,6 +294,7 @@ def run_simulation(args):
                 )
             except Exception as e:
                 print(e)
+                print("Ending {output_dir} invalid spontaneous curvature", sys.stderr)
                 return
 
             _shape = np.shape(geometry.getVertexMatrix())
@@ -312,7 +320,7 @@ def run_simulation(args):
             fe = dg.Euler(
                 system=system,
                 characteristicTimeStep=dt,
-                totalTime=1e6 * dt,
+                totalTime=1e7 * dt,
                 savePeriod=2e3 * dt,
                 tolerance=1e-9,
                 outputDirectory=str(output_dir),
