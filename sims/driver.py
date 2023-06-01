@@ -20,9 +20,16 @@ import sys
 import pdb
 
 
-from parameter_variation import osmolarities, tensions, bending_moduli, target_volume_scale, reservoir_volume
+from parameter_variation import (
+    osmolarities,
+    tensions,
+    bending_moduli,
+    target_volume_scale,
+    reservoir_volume,
+)
 
 warnings.filterwarnings("error")
+
 
 def constantSurfaceTensionModel(area: float, tension: float) -> Tuple[float, float]:
     """Constant surface tension model
@@ -274,10 +281,18 @@ def initialize_mesh_processor_settings(system: dg.System, R_bar: float):
 
 
 def run_simulation(args):
-    osmolarity, tension, kb_scale, target_volume_scale, reservoir_volume, output_dir = args
+    (
+        osmolarity,
+        tension,
+        kb_scale,
+        target_volume_scale,
+        reservoir_volume,
+        output_dir,
+    ) = args
     R_bar = 0.05
-    print(f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}")
-
+    print(
+        f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}"
+    )
 
     trajfile = output_dir / "traj.nc"
     if trajfile.exists():
@@ -288,14 +303,20 @@ def run_simulation(args):
         with contextlib.redirect_stdout(fd):
             try:
                 parameters, geometry, h = getGeometryParameters(
-                    R_bar=R_bar, osmolarity=osmolarity, tension=tension, kb_scale=kb_scale, 
+                    R_bar=R_bar,
+                    osmolarity=osmolarity,
+                    tension=tension,
+                    kb_scale=kb_scale,
                     target_volume_scale=target_volume_scale,
-                    reservoir_volume=reservoir_volume 
+                    reservoir_volume=reservoir_volume,
                 )
             except Exception as e:
                 (output_dir / "log.txt").unlink()
                 output_dir.rmdir()
-                print("Ending {output_dir} invalid spontaneous curvature", sys.stderr)
+                print(
+                    f"Ending {output_dir} invalid spontaneous curvature",
+                    file=sys.stderr,
+                )
                 return
 
             _shape = np.shape(geometry.getVertexMatrix())
