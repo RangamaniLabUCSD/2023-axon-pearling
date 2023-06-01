@@ -279,9 +279,9 @@ def run_simulation(args):
     print(f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}")
 
 
-    trajfile = output_dir / "tra.nc"
+    trajfile = output_dir / "traj.nc"
     if trajfile.exists():
-        print("Ending {output_dir} trajfile exists")
+        print(f"Ending {output_dir} trajfile exists")
         return
 
     with open(output_dir / "log.txt", "w") as fd:
@@ -293,7 +293,8 @@ def run_simulation(args):
                     reservoir_volume=reservoir_volume 
                 )
             except Exception as e:
-                print(e)
+                (output_dir / "log.txt").unlink()
+                output_dir.rmdir()
                 print("Ending {output_dir} invalid spontaneous curvature", sys.stderr)
                 return
 
