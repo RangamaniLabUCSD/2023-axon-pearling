@@ -16,9 +16,10 @@ from tqdm.contrib.concurrent import process_map
 
 import contextlib
 
+from operator import itemgetter
+
 import sys
 import pdb
-
 
 from parameter_variation import (
     osmolarities,
@@ -52,7 +53,7 @@ def ambientSolutionOsmoticPressureModelWUnit(
     ambient_concentration: unit.Quantity,
     reservoir_volume: unit.Quantity = 0 * unit.micron**3,
 ) -> Tuple[float, float]:
-    """Compute the pressure
+    """Compute the osmotic pressure given 
 
     Args:
         volume (float): Volume in micrometer**3
@@ -64,9 +65,6 @@ def ambientSolutionOsmoticPressureModelWUnit(
         Tuple[float, float]: pressure and energy
     """
     volume = volume * unit.micron**3
-    # print(
-    #     f"Scaled Kv strength (iRTn): {(RT*enclosed_solute /reservoir_volume.magnitude).to(unit.micron*unit.nanonewton)}"
-    # )
     RT = RT / reservoir_volume.magnitude
     pressure = RT * (enclosed_solute / volume - ambient_concentration)  # kPa
 
@@ -81,6 +79,86 @@ def ambientSolutionOsmoticPressureModelWUnit(
     #     sep="\n",
     # )
     return (pressure.magnitude, energy.magnitude)
+
+
+def getParameters(
+    R_bar: float = 0.05,
+    tension: float = 0.01,
+    kb_scale: float = 60,
+    osmolarity: float = 0.300,
+    radial_subdivisions: int = 16,
+    axial_subdivisions: int = 120,
+    T: float = 310,
+    reservoir_volume: float = 500,
+    target_volume_scale: float = 3,
+) -> Tuple:
+    R_bar = R_bar * unit.micrometer
+    tension = (
+        tension * unit.nanonewton / unit.micrometer
+    )  # Membrane tension nN/um || mN/m
+
+    T = T * unit.degK  # kelvin
+    KT = (unit.boltzmann_constant * T).to(unit.nanonewton * unit.micrometer)
+    Kb = kb_scale * KT  # Bending modulus
+    # 60*KT is slightly less than 0.27 pNμm Hochmuth, Shao, Dai,Sheets
+    # print("KB", Kb.to(unit.piconewton * unit.micrometer))
+
+    # print(f"1/4R^2: \t{1 / (4 * R_bar * R_bar)}\nsigma/Kb:\t{tension / Kb}")
+
+    # Spontaneous curvature of a tube given a target radius
+    if 1 / (4 * R_bar * R_bar) < tension / Kb:
+        raise RuntimeError(
+            f"Invalid spontaneous curvature for {R_bar}, {tension}, {kb_scale}"
+        )
+
+    H0c = np.sqrt(1 / (4 * R_bar * R_bar) - tension / Kb)
+
+    return tension, Kb, R_bar, H0c
+
+
+def print_parameters(args):
+    (
+        osmolarity,
+        tension,
+        kb_scale,
+        target_volume_scale,
+        reservoir_volume,
+        output_dir,
+    ) = itemgetter(
+        "osmolarity",
+        "tension",
+        "kb_scale",
+        "target_volume_scale",
+        "reservoir_volume",
+        "output_dir",
+    )(
+        args
+    )
+    R_bar = 0.05
+    # print(
+    #     f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}"
+    # )
+    try:
+        tension, kb, rbar, h0c = getParameters(
+            R_bar=R_bar,
+            osmolarity=osmolarity,
+            tension=tension,
+            kb_scale=kb_scale,
+            target_volume_scale=target_volume_scale,
+            reservoir_volume=reservoir_volume,
+        )
+        print(
+            f"{output_dir.stem}:",
+            f"\ttension: {tension}",
+            f"\tosmolarity: {(osmolarity*unit.molar).to(unit.millimolar)}",
+            f"\tbending modulus: {kb}",
+            f"\tspontaneous curvature: {h0c}",
+            "",
+            sep="\n",
+        )
+    except RuntimeError as e:
+        print(f"{output_dir.stem}: pass\n")
+        pass
 
 
 def getGeometryParameters(
@@ -288,7 +366,16 @@ def run_simulation(args):
         target_volume_scale,
         reservoir_volume,
         output_dir,
-    ) = args
+    ) = itemgetter(
+        "osmolarity",
+        "tension",
+        "kb_scale",
+        "target_volume_scale",
+        "reservoir_volume",
+        "output_dir",
+    )(
+        args
+    )
     R_bar = 0.05
     print(
         f"Starting: {output_dir} - {osmolarity}, {tension}, {kb_scale}, {target_volume_scale}, {reservoir_volume}"
@@ -300,6 +387,7 @@ def run_simulation(args):
         return
 
     with open(output_dir / "log.txt", "w") as fd:
+        # with contextlib.nullcontext():
         with contextlib.redirect_stdout(fd):
             try:
                 parameters, geometry, h = getGeometryParameters(
@@ -382,21 +470,46 @@ if __name__ == "__main__":
 
     args = []
 
-    for i, osmolarity in enumerate(osmolarities):
-        for j, tension in enumerate(tensions):
-            for k, kappa in enumerate(bending_moduli):
-                # print(i,j,k)
-                output_dir = base_dir / Path(f"{i}_{j}_{k}")
-                output_dir.mkdir(exist_ok=True)
-                args.append(
-                    (
-                        osmolarity,
-                        tension,
-                        kappa,
-                        target_volume_scale,
-                        reservoir_volume,
-                        output_dir,
-                    )
-                )
+    j = 0
+    tension = tensions[j]
+    k = 2
+    kappa = bending_moduli[k]
+    # print(tension, kappa)
 
-    r = process_map(run_simulation, args, max_workers=20)
+    for i, osmolarity in enumerate(osmolarities):
+        # for j, tension in enumerate(tensions):
+        #     for k, kappa in enumerate(bending_moduli):
+                # print(i,j,k)
+        output_dir = base_dir / Path(f"{i}_{j}_{k}")
+        output_dir.mkdir(exist_ok=True)
+        args.append(
+            {
+                "osmolarity": osmolarity,
+                "tension": tension,
+                "kb_scale": kappa,
+                "target_volume_scale": target_volume_scale,
+                "reservoir_volume": reservoir_volume,
+                "output_dir": output_dir,
+            }
+        )
+
+
+    # for i, osmolarity in enumerate(osmolarities):
+    #     for j, tension in enumerate(tensions):
+    #         for k, kappa in enumerate(bending_moduli):
+    #             # print(i,j,k)
+    #             output_dir = base_dir / Path(f"{i}_{j}_{k}")
+    #             output_dir.mkdir(exist_ok=True)
+    #             args.append(
+    #                 {
+    #                     "osmolarity": osmolarity,
+    #                     "tension": tension,
+    #                     "kb_scale": kappa,
+    #                     "target_volume_scale": target_volume_scale,
+    #                     "reservoir_volume": reservoir_volume,
+    #                     "output_dir": output_dir,
+    #                 }
+    #             )
+
+    # r = process_map(run_simulation, args, max_workers=20)
+    r = process_map(print_parameters, args, max_workers=1, disable=True)

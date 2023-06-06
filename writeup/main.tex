@@ -107,15 +107,17 @@
 
 \begin{document}
 \begin{centering}
-    \textbf{\Large Notes on axon pearling}\\[3mm]
-    \textbf{Christopher T. Lee, Padmini Rangamani}\\[1mm]
+    \textbf{\Large Notes on axon pearling simulations}\\[3mm]
 \end{centering}
+
+
+
 
 \section{Equilibrium tube radius}
 Following the approach outlined by Refs.~\cite{DerenyiEtAl2002,ShurerEtAl2019}.
 The general form of the energy of a membrane with an external force \(f\) acting over length \(L\) is,
 \begin{equation}
-    F = \int_A \left[\kappa(H - c_0)^2 \sigma \right]dA - pV - fL.
+    F = \int_A \left[\kappa(H - c_0)^2 + \sigma \right]dA - pV - fL.
 \end{equation}
 Where \(H\) is the mean curvature give by \((c_1 + c_2)/2\)
 In the special case of a cylinder which has \(c_1 = 1/R\) and \(c_2 = 0\), assuming that \(p=0\), and \(f\neq 0\),
@@ -164,12 +166,11 @@ The osmotic pressure energy
     E_p = \int_{\bar{V}}^{V} \Delta P(\tilde{V}; \vec{r})d \tilde{V} = \int_{\bar{V}}^{V} iRT \left(\frac{n}{V} - \bar{c}\right) dV = iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1]
 \end{equation}
 
-At nearly isoosmotic conditions, 
+At nearly isoosmotic conditions,
 \begin{equation}
     \lim_{V\to\bar{V}} iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1] \approx \frac{1}{2}K_v \frac{(V - \bar{V})^2}{\bar{V}} + \mathcal{O}(V^3).
 \end{equation}
 We define a constant \(K_v = iRTn\) accounting for the constant parameters.
-
 
 \printbibliography
 \end{document}
