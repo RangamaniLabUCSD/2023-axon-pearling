@@ -133,3 +133,7 @@ dmypy.json
 .polyscope.ini
 profile.prof
 .DS_Store
+
+**/Figures/*.pdf
+**/Figures/*.png
+imgui.ini
