@@ -134,6 +134,8 @@ dmypy.json
 profile.prof
 .DS_Store
 
-**/Figures/*.pdf
-**/Figures/*.png
+# Ignore figure artifacts
+**/Figures/**/*.pdf
+**/Figures/**/*.png
+*.pkl
 imgui.ini

@@ -110,11 +110,8 @@
     \textbf{\Large Notes on axon pearling simulations}\\[3mm]
 \end{centering}
 
-
-
-
-\section{Equilibrium tube radius}
-Following the approach outlined by Refs.~\cite{DerenyiEtAl2002,ShurerEtAl2019}.
+\section{Equilibrium conditions for tubes}
+Following the approach outlined by Refs.~\cite{DerenyiEtAl2002,ShurerEtAl2019}, we first establish the general conditions for pulling a tube from a reservoir of membrane.
 The general form of the energy of a membrane with an external force \(f\) acting over length \(L\) is,
 \begin{equation}
     F = \int_A \left[\kappa(H - c_0)^2 + \sigma \right]dA - pV - fL.
@@ -136,41 +133,55 @@ Considering first the minimization with respect to the radius,
 \end{align*}
 Thus,
 \begin{equation}
-    \boxed{R = \frac{1}{2\sqrt{c_0^2 + \sigma/\kappa}}}
+    R = \frac{1}{2\sqrt{c_0^2 + \sigma/\kappa}},
 \end{equation}
-
-Rearranging,
+relates the radius to the spontaneous curvature, tension, and bending rigidity; moreover,
 \begin{equation}
     c_0 = \sqrt{1/4R^2 - \sigma/\kappa}.
 \end{equation}
 
-For \(R = \SI{0.05}{\micro\meter}\) the limit of \(\sigma/\kappa\) is \(\approx \SI{100}{\per\micro\meter\squared}\).
+Assuming an initial geometry of a cylinder with radius \(R = \SI{0.05}{\micro\meter}\) and given values of tension and bending rigidity, we can obtain the homeogenous spontaneous curvature to sustain the tube.
 
-\section{Osmotic pressure relationship}
+\section{Osmotic pressure relationship and computing pressure force}
 
 The osmolarity of the solution, \(O\), is given by
 \begin{equation}
-    O = \sum_i \varphi_i n_i C_i,
+    O = \sum_i \varphi_i k_i C_i,
 \end{equation}
-where \(\varphi\) is the osmotic (activity) coefficient, \(n\) is the number of dissociated ions, and \(C\) is the concentration.
+where \(\varphi\) is the osmotic (activity) coefficient, \(k\) is the number of dissociated ions, and \(C\) is the concentration.
 
 The osmotic pressure is given by
 \begin{equation}
-    P = RTO  = RT \sum_i  \varphi_i n_i C_i
+    P = RTO  = RT \sum_i  \varphi_i k_i C_i
 \end{equation}
 
-We assume that the interior of the cell is at the conventional \SI{300}{\milli\osm}.
-
-The osmotic pressure energy
+Simplifying by homogenizing the contributions of each ionic species, the osmotic pressure energy is given by,
 \begin{equation}
-    E_p = \int_{\bar{V}}^{V} \Delta P(\tilde{V}; \vec{r})d \tilde{V} = \int_{\bar{V}}^{V} iRT \left(\frac{n}{V} - \bar{c}\right) dV = iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1]
+    E_p = \int_{\bar{V}}^{V} \Delta P(\tilde{V}; \vec{r})d \tilde{V} = \int_{\bar{V}}^{V} kRT \left(\frac{n}{V} - \bar{c}\right) dV = kRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1],
+\end{equation}
+where \(RT\) is the ideal gas constant and temperature, \(n\) is the amount of enclosed solute within the geometry, \(\bar{c}\) is the concentration of the external solvent, and \(V\) is the current volume.
+
+To define the initial molar amount of enclosed solute, we assume that the interior of the cell is at the conventional \(c_{t=0} = \SI{300}{\milli\osm}\).
+The amount of solute is given by the product of concentration and initial volume, \(n = c_{t=0}V_{t=0}\). 
+Since the initial geometry, a cylinder with radius \SI{0.05}{\micro\meter}, is somewhat arbitrary, we scale the initial volume by a factor of three to set the effective target volume,
+\begin{equation}
+    n = c_{t=0}\cdot3V_{t=0}.
 \end{equation}
 
-At nearly isoosmotic conditions,
+An effect of this scaling is that the initial volume is much different than the target volume. 
+The contributions from high pressure can lead to numerical instabilities. 
+We assume that since we are modeling only a small section of axon with the majority of the cell volume not represented, that the bulk of the cell also responds to osmotic pressure.
+To capture the contribution implicitly, we scale the energy by a reservoir volume \(V_r\) nondimensionalized by a unit volume,
 \begin{equation}
-    \lim_{V\to\bar{V}} iRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1] \approx \frac{1}{2}K_v \frac{(V - \bar{V})^2}{\bar{V}} + \mathcal{O}(V^3).
+    E_p =\frac{kRTn}{V_r}[\bar{c}V/n - \ln(\bar{c}V/n) -1].
 \end{equation}
-We define a constant \(K_v = iRTn\) accounting for the constant parameters.
+For our intuition, we note that at nearly isoosmotic conditions,
+\begin{equation}
+    \lim_{V\to\bar{V}} kRTn[\bar{c}V/n - \ln(\bar{c}V/n) -1] \approx \frac{1}{2}K_v \frac{(V - \bar{V})^2}{\bar{V}^2} + \mathcal{O}(V^3).
+\end{equation}
+we can define a constant \(K_v = kRTn\) which accounts for the constant parameters.
+Thus the reservoir volume is serving to temper the effective bulk modulus.
+
 
 \printbibliography
 \end{document}

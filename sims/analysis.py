@@ -1,5 +1,14 @@
+import netCDF4 as nc
+
+# import netcdf4 first to avoid strange error
+# related: https://github.com/pydata/xarray/issues/7259
+
 import pymem3dg as dg
 import pymem3dg.util as dgu
+import pymem3dg.visual as dgv
+import pymem3dg.read.netcdf as dg_nc
+
+import polyscope as ps
 
 from pathlib import Path
 
@@ -8,6 +17,7 @@ import numpy.typing as npt
 from typing import Tuple
 from functools import partial
 
+import pickle
 
 from scipy.signal import argrelextrema
 
@@ -22,8 +32,6 @@ import contextlib
 
 import sys
 import pdb
-
-import netCDF4 as nc
 
 
 from operator import itemgetter
@@ -47,6 +55,23 @@ def getRadii(coords: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     z = coords[:, 2].reshape(-1, 1)
     res = np.hstack((r, z))
     return res
+
+
+def log_parser(output_dir):
+    n = -1
+    logfile = output_dir / "log.txt"
+    if logfile.exists():
+        with open(logfile, "r") as fd:
+            for line in fd:
+                if line.startswith("t:"):
+                    data = line.split(", ")
+                    # t = float(data[0].split(": ")[1])
+                    n = int(data[1].split(": ")[1])
+                if line.startswith("<<<<<"):
+                    # print(f"{output_dir}: {n}")
+                    n -= 1
+                    break
+    return n
 
 
 def plot_traj(args):
@@ -107,8 +132,8 @@ def plot_traj(args):
         fig.clear()
         plt.close(fig)
 
-        bead_diameter = 2 * np.max(mean_r) * 1000
-        bead_length = np.mean(np.diff(mean_z[min_indices])) * 1000
+        bead_diameter = 2 * np.max(mean_r) * 1000  # nanometer
+        bead_length = np.mean(np.diff(mean_z[min_indices])) * 1000  # nanometer
 
         print(f"{output_dir.stem}: {int(bead_diameter)}; {int(bead_length)}")
         # print("\n\n")
@@ -120,7 +145,11 @@ def plot_traj(args):
 
 def plot_configuration(ax, output_dir):
     trajfile = output_dir / "traj.nc"
-    # print(trajfile, trajfile.exists())
+
+    print(output_dir.stem)
+    # get frame of interest
+    foi = log_parser(output_dir)
+
     if trajfile.exists():
         ds = nc.Dataset(trajfile)
 
@@ -132,8 +161,8 @@ def plot_configuration(ax, output_dir):
         coords = np.array(vars["coordinates"])
         vel = np.array(vars["velocities"])
 
-        # get coords from last frame
-        rz = getRadii(coords[-1].reshape(-1, 3))
+        # get coords from frame of interest
+        rz = getRadii(coords[foi].reshape(-1, 3))
 
         xbins = 80
         n, _ = np.histogram(rz[:, 1], bins=xbins)
@@ -142,7 +171,7 @@ def plot_configuration(ax, output_dir):
         mean_z = 0.5 * (bin_edges[1:] + bin_edges[:-1])
         mean_r = sy / n
 
-        min_indices = argrelextrema(mean_r, np.less)
+        min_indices = argrelextrema(mean_r, np.less)[0]
 
         ax.plot(mean_z, mean_r)
         ax.scatter(
@@ -155,16 +184,25 @@ def plot_configuration(ax, output_dir):
         ax.set_ylim(0, 0.2)
 
         bead_diameter = 2 * np.max(mean_r) * 1000
-        bead_length = np.mean(np.diff(mean_z[min_indices])) * 1000
+
+        if min_indices.shape[0] == 1:
+            bead_length = -1
+        else:
+            bead_length = np.mean(np.diff(mean_z[min_indices])) * 1000
 
         ax.text(1.25, 0.175, f"D{int(bead_diameter)} L{int(bead_length)}")
 
-        print(f"{output_dir.stem}: {int(bead_diameter)}; {int(bead_length)}")
+        # print(f"{output_dir.stem}[{foi}]: {bead_diameter}; {bead_length}")
+        # print(f"{output_dir.stem}[{foi}]: {int(bead_diameter)}; {int(bead_length)}")
+        return foi, bead_diameter, bead_length
     else:
-        print(f"{output_dir.stem} DNE")
+        # print(f"{output_dir.stem} DNE")
+        return -1, -1, -1
 
 
 def plot_array():
+    values = {}
+
     for j, tension in enumerate(tensions):
         fig, axes = plt.subplots(
             len(osmolarities),
@@ -178,7 +216,8 @@ def plot_array():
             for k, kappa in enumerate(bending_moduli):
                 output_dir = base_dir / Path(f"{i}_{j}_{k}")
                 ax = axes[i, k]
-                plot_configuration(ax, output_dir)
+                values[(i, j, k)] = plot_configuration(ax, output_dir)
+
                 if k == 0:
                     ax.set_ylabel(f"Π ({int(osmolarity*1000)} mOsm)")
 
@@ -196,12 +235,106 @@ def plot_array():
         fig.clear()
         plt.close(fig)
 
+    with open("bead_properties.pkl", "wb") as handle:
+        pickle.dump(values, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    return values
+
+
+def plot_osmolarity_trends(values):
+    j = 0
+    tension = tensions[j]
+
+    for k, kappa in enumerate(bending_moduli):
+        print(k, kappa)
+        # k = 3
+        # kappa = bending_moduli[k]
+        fig, ax = plt.subplots(
+            figsize=(3, 3),
+        )
+
+        for i, osmolarity in enumerate(osmolarities[0:-2]):
+            tup = (i, j, k)
+            _, bead_diameter, bead_length = values[tup]
+            print(tup, values[tup])
+            ax.scatter(bead_length, bead_diameter, label=f"{int(osmolarity*1000)} mOsm")
+
+        ax.set_xlabel("NSB length (nm)")
+        ax.set_ylabel("NSB width (nm)")
+
+        ax.legend(loc="upper left")
+
+        ax.set_xlim([250, 750])
+        ax.set_ylim([150, 450])
+
+        plt.tight_layout()
+        fig.savefig(fig_dir / f"osmolarity_trend_T{j}_K{k}.pdf", format="pdf")
+
+        fig.clear()
+        plt.close(fig)
+
+
+def snapshot_generator(values):
+    snapshot_dir = fig_dir / "snapshots"
+    snapshot_dir.mkdir(exist_ok=True)
+
+    for i, osmolarity in enumerate(osmolarities):
+        for j, tension in enumerate(tensions):
+            for k, kappa in enumerate(bending_moduli):
+                output_dir = base_dir / Path(f"{i}_{j}_{k}")
+
+                tup = (i, j, k)
+                foi, _, _ = values[tup]
+
+                trajfile = output_dir / "traj.nc"
+                if trajfile.exists():
+                    ps.init()
+                    dgv.polyscopeStyle()
+                    ds = nc.Dataset(trajfile)
+
+                    dims = ds.groups["Trajectory"].dimensions
+                    vars = ds.groups["Trajectory"].variables
+                    time = dg_nc.getData(str(trajfile), foi, "Trajectory", "time", 1)
+                    geometry = dg.Geometry(str(trajfile), foi)
+
+                    vertex = geometry.getVertexMatrix()
+                    face = geometry.getFaceMatrix()
+                    psmesh = ps.register_surface_mesh(
+                        "mesh",
+                        vertex,
+                        face,
+                        color=[1, 1, 1],
+                        edge_width=0.5,
+                        edge_color=[0, 0, 0],
+                        transparency=1,
+                        smooth_shade=True,
+                    )
+                    dgv.setPolyscopePermutations(psmesh, face, vertex)
+
+                    ps.reset_camera_to_home_view()
+                    ps.look_at(
+                        camera_location=[1, 0, 1], target=[0, 0, 1], fly_to=False
+                    )
+                    ps.set_length_scale(1.4)
+                    ps.set_SSAA_factor(2)
+                    ps.screenshot(
+                        filename=str(snapshot_dir / f"{i}_{j}_{k}__{osmolarity}_{tension}_{kappa}.png"),
+                        transparent_bg=True,
+                    )
+
+                    # ps.show()
+
 
 if __name__ == "__main__":
     base_dir = Path("trajectories")
     base_dir.mkdir(exist_ok=True)
+    
+    values = plot_array()
+   
+    with open("bead_properties.pkl", "rb") as handle:
+        values = pickle.load(handle)
 
-    plot_array()
+    plot_osmolarity_trends(values)
+    snapshot_generator(values)
 
     # args = []
     # for i, osmolarity in enumerate(osmolarities):
