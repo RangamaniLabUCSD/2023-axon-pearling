@@ -204,18 +204,36 @@ def plot_array():
     values = {}
 
     for j, tension in enumerate(tensions):
-        fig, axes = plt.subplots(
-            len(osmolarities),
-            len(bending_moduli),
-            figsize=(20, 20),
-            sharex=True,
-            sharey=True,
-        )
+        if j == 2:
+            return
+        elif j == 1:
+            fig, axes = plt.subplots(
+                len(osmolarities),
+                len(bending_moduli) - 1,
+                figsize=(20, 20),
+                sharex=True,
+                sharey=True,
+            )
+        else:
+            fig, axes = plt.subplots(
+                len(osmolarities),
+                len(bending_moduli),
+                figsize=(20, 20),
+                sharex=True,
+                sharey=True,
+            )
 
         for i, osmolarity in enumerate(osmolarities):
             for k, kappa in enumerate(bending_moduli):
+                if j == 1:
+                    if k == 0:
+                        continue
+                    else:
+                        ax = axes[i, k - 1]
+                else:
+                    ax = axes[i, k]
+                
                 output_dir = base_dir / Path(f"{i}_{j}_{k}")
-                ax = axes[i, k]
                 values[(i, j, k)] = plot_configuration(ax, output_dir)
 
                 if k == 0:
@@ -317,7 +335,10 @@ def snapshot_generator(values):
                     ps.set_length_scale(1.4)
                     ps.set_SSAA_factor(2)
                     ps.screenshot(
-                        filename=str(snapshot_dir / f"{i}_{j}_{k}__{osmolarity}_{tension}_{kappa}.png"),
+                        filename=str(
+                            snapshot_dir
+                            / f"{i}_{j}_{k}__{osmolarity}_{tension}_{kappa}.png"
+                        ),
                         transparent_bg=True,
                     )
 
@@ -327,9 +348,9 @@ def snapshot_generator(values):
 if __name__ == "__main__":
     base_dir = Path("trajectories")
     base_dir.mkdir(exist_ok=True)
-    
+
     values = plot_array()
-   
+
     with open("bead_properties.pkl", "rb") as handle:
         values = pickle.load(handle)
 

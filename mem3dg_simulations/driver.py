@@ -53,7 +53,7 @@ def ambientSolutionOsmoticPressureModelWUnit(
     ambient_concentration: unit.Quantity,
     reservoir_volume: unit.Quantity = 0 * unit.micron**3,
 ) -> Tuple[float, float]:
-    """Compute the osmotic pressure given 
+    """Compute the osmotic pressure given the current volume and osmotic conditions
 
     Args:
         volume (float): Volume in micrometer**3
@@ -469,47 +469,47 @@ if __name__ == "__main__":
     base_dir.mkdir(exist_ok=True)
 
     args = []
-
-    j = 0
-    tension = tensions[j]
-    k = 2
-    kappa = bending_moduli[k]
-    # print(tension, kappa)
-
     for i, osmolarity in enumerate(osmolarities):
-        # for j, tension in enumerate(tensions):
-        #     for k, kappa in enumerate(bending_moduli):
+        for j, tension in enumerate(tensions):
+            for k, kappa in enumerate(bending_moduli):
                 # print(i,j,k)
-        output_dir = base_dir / Path(f"{i}_{j}_{k}")
-        output_dir.mkdir(exist_ok=True)
-        args.append(
-            {
-                "osmolarity": osmolarity,
-                "tension": tension,
-                "kb_scale": kappa,
-                "target_volume_scale": target_volume_scale,
-                "reservoir_volume": reservoir_volume,
-                "output_dir": output_dir,
-            }
-        )
+                output_dir = base_dir / Path(f"{i}_{j}_{k}")
+                output_dir.mkdir(exist_ok=True)
+                args.append(
+                    {
+                        "osmolarity": osmolarity,
+                        "tension": tension,
+                        "kb_scale": kappa,
+                        "target_volume_scale": target_volume_scale,
+                        "reservoir_volume": reservoir_volume,
+                        "output_dir": output_dir,
+                    }
+                )
 
+    r = process_map(run_simulation, args, max_workers=20)
+
+    # Helper to print out parameters for each condition
+    # args = []
+    # j = 0
+    # tension = tensions[j]
+    # k = 2
+    # kappa = bending_moduli[k]
+    # # print(tension, kappa)
 
     # for i, osmolarity in enumerate(osmolarities):
-    #     for j, tension in enumerate(tensions):
-    #         for k, kappa in enumerate(bending_moduli):
+    #     # for j, tension in enumerate(tensions):
+    #     #     for k, kappa in enumerate(bending_moduli):
     #             # print(i,j,k)
-    #             output_dir = base_dir / Path(f"{i}_{j}_{k}")
-    #             output_dir.mkdir(exist_ok=True)
-    #             args.append(
-    #                 {
-    #                     "osmolarity": osmolarity,
-    #                     "tension": tension,
-    #                     "kb_scale": kappa,
-    #                     "target_volume_scale": target_volume_scale,
-    #                     "reservoir_volume": reservoir_volume,
-    #                     "output_dir": output_dir,
-    #                 }
-    #             )
-
-    # r = process_map(run_simulation, args, max_workers=20)
-    r = process_map(print_parameters, args, max_workers=1, disable=True)
+    #     output_dir = base_dir / Path(f"{i}_{j}_{k}")
+    #     output_dir.mkdir(exist_ok=True)
+    #     args.append(
+    #         {
+    #             "osmolarity": osmolarity,
+    #             "tension": tension,
+    #             "kb_scale": kappa,
+    #             "target_volume_scale": target_volume_scale,
+    #             "reservoir_volume": reservoir_volume,
+    #             "output_dir": output_dir,
+    #         }
+    #     )
+    # r = process_map(print_parameters, args, max_workers=1, disable=True)
