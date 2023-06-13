@@ -107,10 +107,14 @@
 
 \begin{document}
 \begin{centering}
-    \textbf{\Large Notes on axon pearling simulations}\\[3mm]
+    \textbf{\Large Methods for axon pearling and action potential propagation}\\[3mm]
 \end{centering}
 
-\section{Equilibrium conditions for tubes}
+We note that all codes and softwares for reproducing this work are available from \url{https://github.com/RangamaniLabUCSD/2023-axon-pearling}.
+\Red{Add zenodo when ready}.
+
+\section{Axon pearling simulations}
+\subsection{Equilibrium conditions for tubes}
 Following the approach outlined by Refs.~\cite{DerenyiEtAl2002,ShurerEtAl2019}, we first establish the general conditions for pulling a tube from a reservoir of membrane.
 The general form of the energy of a membrane with an external force \(f\) acting over length \(L\) is,
 \begin{equation}
@@ -138,21 +142,22 @@ Thus,
 relates the radius to the spontaneous curvature, tension, and bending rigidity; moreover,
 \begin{equation}
     c_0 = \sqrt{1/4R^2 - \sigma/\kappa}.
+    \label{eq:spontaneous_curvature_relation}
 \end{equation}
 
 Assuming an initial geometry of a cylinder with radius \(R = \SI{0.05}{\micro\meter}\) and given values of tension and bending rigidity, we can obtain the homeogenous spontaneous curvature to sustain the tube.
 
-\section{Osmotic pressure relationship and computing pressure force}
+\subsection{Osmotic pressure relationship and computing pressure force}
 
-The osmolarity of the solution, \(O\), is given by
+The osmolarity of the solution, \(\bar{c}\), is given by
 \begin{equation}
-    O = \sum_i \varphi_i k_i C_i,
+    \bar{c} = \sum_i \varphi_i k_i C_i,
 \end{equation}
 where \(\varphi\) is the osmotic (activity) coefficient, \(k\) is the number of dissociated ions, and \(C\) is the concentration.
 
 The osmotic pressure is given by
 \begin{equation}
-    P = RTO  = RT \sum_i  \varphi_i k_i C_i
+    P = RT\bar{c} = RT \sum_i  \varphi_i k_i C_i
 \end{equation}
 
 Simplifying by homogenizing the contributions of each ionic species, the osmotic pressure energy is given by,
@@ -162,10 +167,10 @@ Simplifying by homogenizing the contributions of each ionic species, the osmotic
 where \(RT\) is the ideal gas constant and temperature, \(n\) is the amount of enclosed solute within the geometry, \(\bar{c}\) is the concentration of the external solvent, and \(V\) is the current volume.
 
 To define the initial molar amount of enclosed solute, we assume that the interior of the cell is at the conventional \(c_{t=0} = \SI{300}{\milli\osm}\).
-The amount of solute is given by the product of concentration and initial volume, \(n = c_{t=0}V_{t=0}\). 
+The amount of solute is given by the product of concentration and initial volume, \(n = c_{t_0}V_{t_0}\). 
 Since the initial geometry, a cylinder with radius \SI{0.05}{\micro\meter}, is somewhat arbitrary, we scale the initial volume by a factor of three to set the effective target volume,
 \begin{equation}
-    n = c_{t=0}\cdot3V_{t=0}.
+    n = c_{t_0}\cdot3V_{t_0}.
 \end{equation}
 
 An effect of this scaling is that the initial volume is much different than the target volume. 
@@ -174,6 +179,7 @@ We assume that since we are modeling only a small section of axon with the major
 To capture the contribution implicitly, we scale the energy by a reservoir volume \(V_r\) nondimensionalized by a unit volume,
 \begin{equation}
     E_p =\frac{kRTn}{V_r}[\bar{c}V/n - \ln(\bar{c}V/n) -1].
+    \label{eq:pressure_energy}
 \end{equation}
 For our intuition, we note that at nearly isoosmotic conditions,
 \begin{equation}
@@ -181,6 +187,52 @@ For our intuition, we note that at nearly isoosmotic conditions,
 \end{equation}
 we can define a constant \(K_v = kRTn\) which accounts for the constant parameters.
 Thus the reservoir volume is serving to temper the effective bulk modulus.
+
+\subsection{Exploring the parameter space}
+
+We vary the range of osmolarities from \SIrange[]{100}{600}{\milli\osm}, bending modulus \SIrange[]{20}{100}{\(k_bT\)}, and tension \SIrange[]{0.001}{0.01}{\milli\newton\meter}.
+For all simulations, we assume that the temperature is \SI{310}{\kelvin}.
+As aforementioned, the initial condition for all conditions is a cylinder with initial radius, \(R = \SI{0.05}{\micro\meter}\).
+The spontaneous curvature is homeogeneous over all vertices with value computed by \cref{eq:spontaneous_curvature_relation}.
+We use a reference volume of \SI{700}{\micro\meter\cubed} from the literature (c.f., \textcite{LarsenEtAl2021}).
+All systems are simulated under constant tension conditions.
+The contribution to system energy from osmotic pressure is given by \cref{eq:pressure_energy};
+Thus the system tends towards a volume which produces a condition isoosmotic with the prescribed solvent osmolarity.
+The relaxation of the membrane systems with given material properties and osmotic conditions were simulated using \textit{Mem3DG} \cite{ZhuEtAl2022}.
+
+\section{Action potential propagation}
+
+To model the action potential propagation in the axon, we follow the work of Hodgkin and Huxley \cite{hodgkin1952quantitative} and use the cable equation given by
+\begin{equation}\label{eq:i}
+    i = \frac{1}{\rho} \frac{\partial^2 V}{\partial x^2},
+\end{equation}
+where $i$ is the membrane current per unit length, $V$ is the displacement of the membrane potential from its resting value, $x$ is the distance along the axon, and  is the internal resistance per unit length. To transform the unit length to density, we take $i = 2 \pi \Delta x r I$ and $\rho = R \pi r^2/\Delta x$, where $\Delta x$ is the unit length, $r$ the axon radius, $R$ the specific resistance of the axoplasm, and $I$ the total membrane current density. Then Eq. \refeq{eq:i} can be rewritten as
+\begin{equation}
+    I = \frac{r}{2R} \frac{\partial^2 V}{\partial x^2}.
+\end{equation}
+The total current can be divided into a capacity current and an ionic current $I_i$, hence
+\begin{equation}
+    I = C_M \frac{\mathrm{d}V}{\mathrm{d}t} + I_i = C_M \frac{\mathrm{d}V}{\mathrm{d}t} + I_{Na} + I_K + I_l.
+\end{equation}
+Here, $C_M$ is the membrane capacity per unit area and the ionic current is split into components carried by sodium ($I_{Na}$), potassium ($I_K$), or other ions ($I_l$). Using Ohm’s law, these currents can be linearly related to the driving potential:
+\begin{equation}
+    I_j = G_j(V(t),t)(V(t)-E_j),  \quad   j \in \{Na,K,l\},
+\end{equation}
+where $E_j$ is the reversal potential and $G_j$ the conductance. For the leak current $I_l = G_m(V-E_l)$, with $G_m$ constant. For the sodium and potassium currents, the ionic conductances are expressed as the maximum conductance, $G_j$, multiplied by a number that represents the open fraction of $G_j$. Such a number is obtained from the dynamics of activating and inactivating gating particles \cite{hodgkin1952quantitative,koch2004biophysics}. For the potassium current $I_K=G_Kn^4(V-E_K)$, with $n$ representing an activating particle that has the following dynamics: 
+\begin{equation}
+    \frac{\mathrm{d}n}{\mathrm{d}t} = \alpha_n(V)(1-n) - \beta_n(V)n, \quad \alpha_n = \frac{10-V}{100\(\ee^{(10-V)/10}-1\)}, \quad \beta_n = 0.125\ee^{-V/80}.
+\end{equation}
+The sodium current $I_{Na}= G_{Na}m^3h(V-E_{Na})$ has an activation and inactivation particle, $m$ and $h$, respectively, described by
+\begin{equation}
+    \frac{\mathrm{d}m}{\mathrm{d}t} = \alpha_m(V)(1-m) - \beta_m(V)m, \quad \alpha_m = \frac{25-V}{10\(\ee^{(25-V)/10}-1\)}, \quad \beta_m = 4\ee^{-V/18}, \quad text{and}
+\end{equation}
+\begin{equation}
+    \frac{\mathrm{d}h}{\mathrm{d}t} = \alpha_h(V)(1-h) - \beta_h(V)h, \quad \alpha_h = 0.07\ee^{-V/20}, \quad \beta_h = \frac{1}{\ee^{(30-V)/10}-1}.
+\end{equation}
+
+We simulate the cable equation (Eq. \eqref{eq:i}) with the currents described by Hodgkin and Huxley for \SI{10}{\milli\second} in COMSOL Multiphysics 6.1. The parameter values are taken from \cite{koch2004biophysics} for the model and from experiments for the axon shape, see Table 1. The first \SI{90}{\micro\meter} segment of the axon corresponds to the initial segment where there is no beading. After the initial segment, the axon geometry is composed of ellipsoids, representing non-synaptic boutons, connected by cylinders, representing connectors. An external current $I_{ext}$ is applied after \SI{0.5}{\milli\second} for \SI{1}{\milli\second} to the first \SI{40}{\micro\meter} of the initial segment. We measured $V$ at discrete locations in the axon throughout the simulation. To calculate the action potential velocity we obtained the time when $V$ has its maximum value at the different locations and divide the distance of the measuring locations by the difference between maximum times. 
+
+The periodic location of sodium channels is modeled by multiplying the potassium activation variable times $f(x) = -0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.4)+0.5 $ ($f(x) = 0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.3)+0.5 $). This results in a periodic (190 nm) step-like function that equals 1 for $\sim 2/3$ of the period, which resembles experimental data \cite{xu2013actin}. To conserve the amount of sodium in the channels, the conductance was scaled $g_{Na} = g_{Na}\( 1 + l_{off}/l_{on}\)$
 
 
 \printbibliography
