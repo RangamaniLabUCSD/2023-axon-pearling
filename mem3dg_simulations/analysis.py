@@ -208,7 +208,7 @@ def plot_array():
             return
         elif j == 1:
             fig, axes = plt.subplots(
-                len(osmolarities),
+                len(osmolarities) - 2,
                 len(bending_moduli) - 1,
                 figsize=(20, 20),
                 sharex=True,
@@ -216,14 +216,14 @@ def plot_array():
             )
         else:
             fig, axes = plt.subplots(
-                len(osmolarities),
+                len(osmolarities) - 2,
                 len(bending_moduli),
                 figsize=(20, 20),
                 sharex=True,
                 sharey=True,
             )
 
-        for i, osmolarity in enumerate(osmolarities):
+        for i, osmolarity in enumerate(osmolarities[0:-2]):
             for k, kappa in enumerate(bending_moduli):
                 if j == 1:
                     if k == 0:
@@ -232,11 +232,13 @@ def plot_array():
                         ax = axes[i, k - 1]
                 else:
                     ax = axes[i, k]
-                
+
                 output_dir = base_dir / Path(f"{i}_{j}_{k}")
                 values[(i, j, k)] = plot_configuration(ax, output_dir)
 
-                if k == 0:
+                if j == 1 and k == 1:
+                    ax.set_ylabel(f"Π ({int(osmolarity*1000)} mOsm)")
+                elif k == 0:
                     ax.set_ylabel(f"Π ({int(osmolarity*1000)} mOsm)")
 
                 if i == len(osmolarities) - 1:
@@ -259,6 +261,9 @@ def plot_array():
 
 
 def plot_osmolarity_trends(values):
+    cmap = mpl.colormaps["viridis"]
+    c = cmap(np.linspace(0, 1, len(osmolarities) - 2))
+
     j = 0
     tension = tensions[j]
 
@@ -274,7 +279,12 @@ def plot_osmolarity_trends(values):
             tup = (i, j, k)
             _, bead_diameter, bead_length = values[tup]
             print(tup, values[tup])
-            ax.scatter(bead_length, bead_diameter, label=f"{int(osmolarity*1000)} mOsm")
+            ax.scatter(
+                bead_length,
+                bead_diameter,
+                color=c[i],
+                label=f"{int(osmolarity*1000)} mOsm",
+            )
 
         ax.set_xlabel("NSB length (nm)")
         ax.set_ylabel("NSB width (nm)")
@@ -286,6 +296,45 @@ def plot_osmolarity_trends(values):
 
         plt.tight_layout()
         fig.savefig(fig_dir / f"osmolarity_trend_T{j}_K{k}.pdf", format="pdf")
+
+        fig.clear()
+        plt.close(fig)
+
+
+def plot_rigidity_trends(values):
+    cmap = mpl.colormaps["viridis"]
+    c = cmap(np.linspace(0, 1, len(bending_moduli)))
+
+    j = 0
+    tension = tensions[j]
+
+    for i, osmolarity in enumerate(osmolarities):
+        fig, ax = plt.subplots(
+            figsize=(3, 3),
+        )
+
+        for k, kappa in enumerate(bending_moduli):
+            print(k, kappa, tension, osmolarity)
+
+            tup = (i, j, k)
+            _, bead_diameter, bead_length = values[tup]
+            print(tup, values[tup])
+            ax.scatter(bead_length, bead_diameter, color=c[k], label=f"{int(kappa)} KT")
+
+        ax.set_xlabel("NSB length (nm)")
+        ax.set_ylabel("NSB width (nm)")
+
+        # ax.set_xlim([250, 750])
+        # ax.set_ylim([150, 450])
+
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+
+        plt.tight_layout()
+        fig.savefig(fig_dir / f"rigidity_trend_T{j}_O{i}.pdf", format="pdf")
 
         fig.clear()
         plt.close(fig)
@@ -355,6 +404,7 @@ if __name__ == "__main__":
         values = pickle.load(handle)
 
     plot_osmolarity_trends(values)
+    plot_rigidity_trends(values)
     snapshot_generator(values)
 
     # args = []
