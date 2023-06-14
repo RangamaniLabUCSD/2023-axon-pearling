@@ -89,9 +89,7 @@
 % \setlength{\glsdescwidth}{0.8\textwidth}
 
 \setacronymstyle{long-short}
-\makeglossaries{}
-\newacronym{md}{MD}{Molecular Dynamics}
-
+% \makeglossaries{}
 
 \newcommand{\ep}{\epsilon}
 
@@ -107,7 +105,8 @@
 
 \begin{document}
 \begin{centering}
-    \textbf{\Large Methods for axon pearling and action potential propagation}\\[3mm]
+    \textbf{\Large Supplementary methods for the computational models of axon pearling and action potential propagation}\\[3mm]
+    
 \end{centering}
 
 We note that all codes and softwares for reproducing this work are available from \url{https://github.com/RangamaniLabUCSD/2023-axon-pearling}.
@@ -198,13 +197,13 @@ We use a reference volume of \SI{700}{\micro\meter\cubed} from the literature (c
 All systems are simulated under constant tension conditions.
 The contribution to system energy from osmotic pressure is given by \cref{eq:pressure_energy};
 Thus the system tends towards a volume which produces a condition isoosmotic with the prescribed solvent osmolarity.
-The relaxation of the membrane systems with given material properties and osmotic conditions were simulated using \textit{Mem3DG} \cite{ZhuEtAl2022}.
+The relaxation of the membrane systems with given material properties and osmotic conditions were simulated using \textit{Mem3DG} version 0.0.6rc2 \cite{ZhuEtAl2022}.
 Fixed boundary conditions were used for all simulations (i.e., vertices within the first 2 rings to a boundary have fixed position).
 The intial timestep for each system is set relative to the given bending modulus and allowed to adaptively vary with system condition.
 The system geometry is propagated using forward Euler integration.
 To prevent mesh degradation, the mesh is conditioned every 100 timesteps.
 Resulting configurations are stored in intervals of 2000 timesteps, which can vary in size.
-Simulations are terminated by one of three conditions: 1) reaching a L2 force threshold tolerance of\SI{1e-9}{\pico\newton**2}, 2) reaching \si{1e7} timesteps, or 3) the adaptive timestep becomes too small.
+Simulations are terminated by one of three conditions: 1) reaching a L2 force threshold tolerance of \SI{1e-9}{\pico\newton\squared}, 2) reaching \si{1e7} timesteps, or 3) the adaptive timestep becomes too small.
 
 \subsection{Analysis of the output geometries}
 
@@ -247,7 +246,7 @@ Here, $C_M$ is the membrane capacity per unit area and the ionic current is spli
 \end{equation}
 where $E_j$ is the reversal potential and $G_j$ the conductance. For the leak current $I_l = G_m(V-E_l)$, with $G_m$ constant. For the sodium and potassium currents, the ionic conductances are expressed as the maximum conductance, $G_j$, multiplied by a number that represents the open fraction of $G_j$. Such a number is obtained from the dynamics of activating and inactivating gating particles \cite{hodgkin1952quantitative,koch2004biophysics}. For the potassium current $I_K=G_Kn^4(V-E_K)$, with $n$ representing an activating particle that has the following dynamics: 
 \begin{equation}
-    \frac{\mathrm{d}n}{\mathrm{d}t} = \alpha_n(V)(1-n) - \beta_n(V)n, \quad \alpha_n = \frac{10-V}{100(\ee^{(10-V)/10}-1)}, %\quad \beta_n = 0.125\ee^{-V/80}.
+    \frac{\mathrm{d}n}{\mathrm{d}t} = \alpha_n(V)(1-n) - \beta_n(V)n, \quad \alpha_n = \frac{10-V}{100(\ee^{(10-V)/10}-1)}, \quad \beta_n = 0.125\ee^{-V/80}.
 \end{equation}
 The sodium current $I_{Na}= G_{Na}m^3h(V-E_{Na})$ has an activation and inactivation particle, $m$ and $h$, respectively, described by
 \begin{equation}
@@ -257,7 +256,7 @@ The sodium current $I_{Na}= G_{Na}m^3h(V-E_{Na})$ has an activation and inactiva
     \frac{\mathrm{d}h}{\mathrm{d}t} = \alpha_h(V)(1-h) - \beta_h(V)h, \quad \alpha_h = 0.07\ee^{-V/20}, \quad \beta_h = \frac{1}{\ee^{(30-V)/10}-1}.
 \end{equation}
 
-We simulate the cable equation (Eq. \eqref{eq:i}) with the currents described by Hodgkin and Huxley for \SI{10}{\milli\second} in COMSOL Multiphysics 6.1. The parameter values are taken from \cite{koch2004biophysics} for the model and from experiments for the axon shape, see Table 1. The first \SI{90}{\micro\meter} segment of the axon corresponds to the initial segment where there is no beading. After the initial segment, the axon geometry is composed of ellipsoids, representing non-synaptic boutons, connected by cylinders, representing connectors. An external current $I_{ext}$ is applied after \SI{0.5}{\milli\second} for \SI{1}{\milli\second} to the first \SI{40}{\micro\meter} of the initial segment. We measured $V$ at discrete locations in the axon throughout the simulation. To calculate the action potential velocity we obtained the time when $V$ has its maximum value at the different locations and divide the distance of the measuring locations by the difference between maximum times. 
+We simulate the cable equation (Eq. \eqref{eq:i}) with the currents described by Hodgkin and Huxley for \SI{10}{\milli\second} in COMSOL Multiphysics 6.1. The parameter values are taken from \cite{koch2004biophysics} for the model and from experiments for the axon shape, see Table \ref{table:AP}. The first \SI{90}{\micro\meter} segment of the axon corresponds to the initial segment where there is no beading. After the initial segment, the axon geometry is composed of ellipsoids, representing non-synaptic boutons, connected by cylinders, representing connectors. An external current $I_{ext}$ is applied after \SI{0.5}{\milli\second} for \SI{1}{\milli\second} to the first \SI{40}{\micro\meter} of the initial segment. We measured $V$ at discrete locations in the axon throughout the simulation. To calculate the action potential velocity we obtained the time when $V$ has its maximum value at the different locations and divide the distance of the measuring locations by the difference between maximum times. 
 
 The periodic location of sodium channels is modeled by multiplying the potassium activation variable times $f(x) = -0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.4)+0.5 $ ($f(x) = 0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.3)+0.5 $). This results in a periodic (190 nm) step-like function that equals 1 for $\sim 2/3$ of the period, which resembles experimental data \cite{xu2013actin}. To conserve the amount of sodium in the channels, the conductance was scaled $G_{Na} = G_{Na} ( 1 + l_{off}/l_{on})$, where $l_{off}$ ($l_{on}$) is the percentage of surface area without (with) sodium channels.
 
@@ -270,12 +269,19 @@ The periodic location of sodium channels is modeled by multiplying the potassium
  $C_M$ & membrane capacity & \SI{1}{\micro\farad\per\centi\meter\squared}  \\ \hline
   $R$ & specific resistance of the axoplasm  & \SI{70.8}{\ohm\centi\meter}  \\ \hline
 $I_{ext}$ & external current  & \SI{30}{\micro\ampere\per\centi\meter\squared}  \\ \hline
-$G_{k}$ & maximum potassium conductance  & \SI{36}{\milli\siemens\meter\squared}  \\ \hline
+$G_{K}$ & maximum potassium conductance  & \SI{36}{\milli\siemens\per\centi\meter\squared}  \\ \hline
+$G_{Na}$ & maximum sodium conductance  & \SI{120}{\milli\siemens\per\centi\meter\squared}  \\ \hline
+$G_{m}$ & leak conductance  & \SI{0.3}{\milli\siemens\per\centi\meter\squared}  \\ \hline
+$E_{K}$ & ionic reversal of potassium  & \SI{-12}{\milli\volt}  \\ \hline
+$E_{Na}$ & ionic reversal of sodium  & \SI{115}{\milli\volt}  \\ \hline
+$E_{l}$ & ionic reversal of leak  & \SI{10.613}{\milli\volt}  \\ \hline
+$V_{0}$ & initial displacement of the membrane potential from its resting value  & \SI{0}{\milli\volt}  \\ \hline
+$n_{0}$ & initial value of potassium activation  & 0.32  \\ \hline
+$m_{0}$ & initial value of sodium activation  & 0.05  \\ \hline
  
 \end{tabular}
 %\caption{\label{table:fit} \textbf{Model Parameters} For further information about parameter fitting see Supplementary Information \ref{sec:param_estimation}.}
 \end{table}
-
 
 \printbibliography
 \end{document}
