@@ -105,11 +105,13 @@
 
 \begin{document}
 \begin{centering}
-    \textbf{\Large Supplementary methods for the computational models of axon pearling and action potential propagation}\\[3mm]
-    
+    \textbf{\Large Supplementary methods: Membrane mechanics dictate axonal morphology and function}
+
+    Jacqueline M. Griswold,  Mayte Bonilla\hyphen Quintana\(^{\#}\), Renee Pepper\(^{\#}\), Christopher T. Lee\(^{\#}\), Sumana Raychaudhuri, Siyi Ma, P.C. Dave, Dingal P., Quan Gan, Cuncheng Zhu, Miriam Bell,  Mitsuo Suga, U. Valentin Nägerl, Graham Knott,  Padmini Rangamani*, and Shigeki Watanabe*\\[1cm]
 \end{centering}
 
-We note that all codes and softwares for reproducing this work are available from \url{https://github.com/RangamaniLabUCSD/2023-axon-pearling}.
+
+\noindent We note that all codes and softwares for reproducing this work are available from \url{https://github.com/RangamaniLabUCSD/2023-axon-pearling}.
 \Red{Add zenodo when ready}.
 
 \section{Axon pearling simulations}
@@ -232,7 +234,7 @@ To model the action potential propagation in the axon, we follow the work of Hod
 \begin{equation}\label{eq:i}
     i = \frac{1}{\rho} \frac{\partial^2 V}{\partial x^2},
 \end{equation}
-where $i$ is the membrane current per unit length, $V$ is the displacement of the membrane potential from its resting value, $x$ is the distance along the axon, and  is the internal resistance per unit length. To transform the unit length to density, we take $i = 2 \pi \Delta x r I$ and $\rho = R \pi r^2/\Delta x$, where $\Delta x$ is the unit length, $r$ the axon radius, $R$ the specific resistance of the axoplasm, and $I$ the total membrane current density. Then Eq. \refeq{eq:i} can be rewritten as
+where $i$ is the membrane current per unit length, $V$ is the displacement of the membrane potential from its resting value, $x$ is the distance along the axon, and $\rho$ is the internal resistance per unit length. To transform the unit length to density, we take $i = 2 \pi \Delta x r I$ and $\rho = R \pi r^2/\Delta x$, where $\Delta x$ is the unit length, $r$ the axon radius, $R$ the specific resistance of the axoplasm, and $I$ the total membrane current density. Then Eq. \refeq{eq:i} can be rewritten as
 \begin{equation}
     I = \frac{r}{2R} \frac{\partial^2 V}{\partial x^2}.
 \end{equation}
@@ -256,7 +258,8 @@ The sodium current $I_{Na}= G_{Na}m^3h(V-E_{Na})$ has an activation and inactiva
     \frac{\mathrm{d}h}{\mathrm{d}t} = \alpha_h(V)(1-h) - \beta_h(V)h, \quad \alpha_h = 0.07\ee^{-V/20}, \quad \beta_h = \frac{1}{\ee^{(30-V)/10}-1}.
 \end{equation}
 
-We simulate the cable equation (Eq. \eqref{eq:i}) with the currents described by Hodgkin and Huxley for \SI{10}{\milli\second} in COMSOL Multiphysics 6.1. The parameter values are taken from \cite{koch2004biophysics} for the model and from experiments for the axon shape, see Table \ref{table:AP}. The first \SI{90}{\micro\meter} segment of the axon corresponds to the initial segment where there is no beading. After the initial segment, the axon geometry is composed of ellipsoids, representing non-synaptic boutons, connected by cylinders, representing connectors. An external current $I_{ext}$ is applied after \SI{0.5}{\milli\second} for \SI{1}{\milli\second} to the first \SI{40}{\micro\meter} of the initial segment. We measured $V$ at discrete locations in the axon throughout the simulation. To calculate the action potential velocity we obtained the time when $V$ has its maximum value at the different locations and divide the distance of the measuring locations by the difference between maximum times. 
+We simulate the cable equation (Eq. \eqref{eq:i}) with the currents described by Hodgkin and Huxley for \SI{10}{\milli\second} in COMSOL Multiphysics 6.1. The parameter values are taken from \cite{koch2004biophysics} for the model and from experiments for the axon shape, see Table \ref{table:AP}. The first \SI{90}{\micro\meter} segment of the axon corresponds to the initial segment where there is no beading. After the initial segment, the axon geometry is composed of ellipsoids, representing non-synaptic boutons (NSB), connected by cylinders, representing connectors. An external current $I_{ext}$ is applied after \SI{0.5}{\milli\second} for \SI{1}{\milli\second} to the first \SI{40}{\micro\meter} of the initial segment. We measured $V$ at discrete locations in the axon throughout the simulation. To calculate the action potential velocity we obtained the time when $V$ has its maximum value at the different locations and divide the distance of the measuring locations by the difference between maximum times. 
+The simulations have the mean geometrical parameters, unless stated otherwise: NSB length = 475 nm, NSB width = 300 nm, connector length = 525 nm, and connector width = 162.5 nm. 
 
 The periodic location of sodium channels is modeled by multiplying the potassium activation variable times $f(x) = -0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.4)+0.5 $ ($f(x) = 0.5 \mathrm{sign} ( \sin (2\pi x/190)-0.3)+0.5 $). This results in a periodic (190 nm) step-like function that equals 1 for $\sim 2/3$ of the period, which resembles experimental data \cite{xu2013actin}. To conserve the amount of sodium in the channels, the conductance was scaled $G_{Na} = G_{Na} ( 1 + l_{off}/l_{on})$, where $l_{off}$ ($l_{on}$) is the percentage of surface area without (with) sodium channels.
 
