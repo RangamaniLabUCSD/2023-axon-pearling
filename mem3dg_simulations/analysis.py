@@ -241,7 +241,7 @@ def plot_array():
                 elif k == 0:
                     ax.set_ylabel(f"Π ({int(osmolarity*1000)} mOsm)")
 
-                if i == len(osmolarities) - 1:
+                if i == len(osmolarities) - 3:
                     ax.set_xlabel(f"κ ({kappa}KT)")
 
         fig.supxlabel("axial (μm)")
@@ -400,8 +400,8 @@ if __name__ == "__main__":
 
     values = plot_array()
 
-    with open("bead_properties.pkl", "rb") as handle:
-        values = pickle.load(handle)
+    # with open("bead_properties.pkl", "rb") as handle:
+    #     values = pickle.load(handle)
 
     plot_osmolarity_trends(values)
     plot_rigidity_trends(values)
