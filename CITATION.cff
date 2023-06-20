@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: Models accompanying Griswold et al.
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+abstract: Codes for models accompanying Griswold et al.
+authors:
+  - given-names: Jacqueline M.
+    family-names: Griswold
+  - given-names: Mayte
+    family-names: Bonilla-Quintana
+    email: mbonillaquintana@eng.ucsd.edu
+    orcid: https://orcid.org/0000-0002-7195-1183
+  - given-names: Renee
+    family-names: Pepper
+  - given-names: Christopher T.
+    family-names: Lee
+    email: ctlee@ucsd.edu
+    orcid: https://orcid.org/0000-0002-0670-2308
+  - given-names: Sumana
+    family-names: Raychaudhuri
+  - given-names: Siyi
+    family-names: Ma
+  - given-names: Quan
+    family-names: Gan
+  - given-names: Sarah
+    family-names: Syed
+  - given-names: Cuncheng
+    family-names: Zhu
+    orcid: https://orcid.org/0000-0003-1373-3492
+  - given-names: Miriam 
+    family-names: Bell
+  - given-names: Mitsuo
+    family-names: Suga
+  - given-names: Yuuki
+    family-names: Yamaguchi
+  - given-names: U. Valentin
+    family-names: Nägerl
+  - given-names: Graham
+    family-names: Knott
+  - given-names: Padmini
+    family-names: Rangamani
+    email: prangamani@ucsd.edu
+    orcid: https://orcid.org/0000-0001-5953-4347
+  - given-names: Shigeki
+    family-names: Watanabe
+    email: shigeki.watanabe@jhmi.edu
+license: CC-BY-SA-4.0
+repository-code: "https://github.com/RangamaniLabUCSD/2023-axon-pearling"
